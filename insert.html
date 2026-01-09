@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CYPH3R</title>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Orbitron', Arial, sans-serif;
+      background-image: url("background.png");
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: white;
+    }
+
+    /* Dark overlay */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      z-index: -1;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px;
+      letter-spacing: 3px;
+    }
+
+    .panel {
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      border-radius: 18px;
+      padding: 25px;
+      max-width: 1000px;
+      margin: 40px auto;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    }
+
+    /* 🔍 SEARCH BAR */
+    .search-box {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .search-box input {
+      width: 320px;
+      padding: 12px;
+      font-size: 15px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      background: #111827;
+      color: white;
+    }
+
+    .search-box input::placeholder {
+      color: #9ca3af;
+    }
+
+    .search-box button {
+      padding: 12px 18px;
+      font-size: 15px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: white;
+    }
+
+    /* Toggle Inline / New Tab */
+    .toggle-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .toggle-buttons button {
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 10px;
+    }
+
+    /* Results panel */
+    .results {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .result-card {
+      padding: 12px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .result-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+    .result-title {
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .result-desc {
+      font-size: 12px;
+      color: #9ca3af;
+      word-break: break-all;
+    }
+
+    /* Category Buttons */
+    .category-bar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .category-bar button {
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 10px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.2s ease;
+    }
+
+    .category-bar button.active {
+      opacity: 1;
+      background: linear-gradient(135deg, #1f2937, #374151);
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 15px;
+    }
+
+    button.site-btn {
+      padding: 15px;
+      font-size: 15px;
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #111827, #1f2937);
+      color: white;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button.site-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+    }
+
+  </style>
+</head>
+<body>
+
+  <h1>CYPH3R UB</h1>
+
+  <div class="panel">
+
+    <!-- 🔍 DuckDuckGo Search -->
+    <div class="search-box">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search DuckDuckGo..."
+        onkeydown="if(event.key==='Enter') performSearch()"
+      />
+      <button onclick="performSearch()">Search</button>
+    </div>
+
+    <!-- Toggle Inline / New Tab -->
+    <div class="toggle-buttons">
+      <button id="inlineBtn" onclick="setSearchMode('inline')">Inline</button>
+      <button id="newTabBtn" onclick="setSearchMode('newtab')">New Tab</button>
+    </div>
+
+    <!-- Results panel -->
+    <div id="results" class="results"></div>
+
+    <!-- Category Buttons -->
+    <div class="category-bar">
+      <button class="category-btn active" onclick="filterCategory('all')">All</button>
+      <button class="category-btn" onclick="filterCategory('games')">Games</button>
+      <button class="category-btn" onclick="filterCategory('tools')">Tools</button>
+      <button class="category-btn" onclick="filterCategory('videos')">Videos</button>
+      <button class="category-btn" onclick="filterCategory('fun')">Fun</button>
+    </div>
+
+    <!-- Portal Buttons -->
+    <div class="container" id="siteContainer">
+      <button class="site-btn" data-category="games" onclick="openSite('https://eaglercraft-site-secondarys-projects-97a4265a.vercel.app')">Minecraft</button>
+      <button class="site-btn" data-category="games" onclick="openSite('https://subway-surfers.gg/')">Subway Surfers</button>
+      <button class="site-btn" data-category="videos" onclick="openSite('https://youtube.com/')">YouTube</button>
+      <button class="site-btn" data-category="games" onclick="openSite('https://searchplayground.google/pacman/halloween/?hl=en&gl=us')">PAC-MAN Halloween</button>
+      <button class="site-btn" data-category="games" onclick="openSite('https://geometrygame.org')">Geometry Dash</button>
+      <button class="site-btn" data-category="tools" onclick="openSite('https://1.lightspeed-filter.agency/')">Doge UB</button>
+      <button class="site-btn" data-category="tools" onclick="openSite('https://scramjet.mercurywork.shop/')">Scramjet</button>
+      <button class="site-btn" data-category="videos" onclick="openSite('https://flixer.sh')">Movies & TV Shows</button>
+      <button class="site-btn" data-category="tools" onclick="openSite('https://www.nvidia.com/en-us/geforce-now/')">GeForce NOW</button>
+
+      <!-- NEW GAMES -->
+      <button class="site-btn" data-category="games" onclick="openSite('https://escaperoad2.com/')">Escape Road 2</button>
+      <button class="site-btn" data-category="games" onclick="openSite('https://www.kickstarter.com/projects/1256419887/kindergarten-game')">Kindergarten 1</button>
+      <button class="site-btn" data-category="games" onclick="openSite('https://www.newgrounds.com/portal/view/632861')">Kindergarten 2</button>
+      <button class="site-btn" data-category="games" onclick="openSite('https://www.hotlinemiami.com/')">Hotline Miami</button>
+    </div>
+
+  </div>
+
+  <script>
+    let searchMode = 'inline'; // default mode
+
+    function setSearchMode(mode) {
+      searchMode = mode;
+      document.getElementById('results').innerHTML = '';
+      document.getElementById('inlineBtn').style.opacity = mode==='inline'? '1':'0.6';
+      document.getElementById('newTabBtn').style.opacity = mode==='newtab'? '1':'0.6';
+    }
+
+    function performSearch() {
+      if(searchMode === 'inline') {
+        searchDDGInline();
+      } else {
+        searchDDGNewTab();
+      }
+    }
+
+    async function searchDDGInline() {
+      const query = document.getElementById("searchInput").value.trim();
+      if (!query) return;
+
+      const resultsDiv = document.getElementById("results");
+      resultsDiv.innerHTML = "Searching DuckDuckGo…";
+
+      try {
+        const res = await fetch(
+          `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1`
+        );
+        const data = await res.json();
+
+        resultsDiv.innerHTML = "";
+
+        const topics = data.RelatedTopics || [];
+        let count = 0;
+
+        for (const t of topics) {
+          if (t.Text && t.FirstURL && count < 8) {
+            const card = document.createElement("div");
+            card.className = "result-card";
+            card.onclick = () => window.open(t.FirstURL, "_blank");
+
+            card.innerHTML = `
+              <div class="result-title">${t.Text}</div>
+              <div class="result-desc">${t.FirstURL}</div>
+            `;
+            resultsDiv.appendChild(card);
+            count++;
+          }
+        }
+
+        if (count === 0) {
+          resultsDiv.innerHTML = "No instant results found. Try a different query.";
+        }
+
+      } catch (err) {
+        resultsDiv.innerHTML = "Error fetching results.";
+        console.error(err);
+      }
+    }
+
+    function searchDDGNewTab() {
+      const query = document.getElementById("searchInput").value.trim();
+      if (!query) return;
+      const url = "https://duckduckgo.com/?q=" + encodeURIComponent(query);
+      window.open(url, "_blank");
+    }
+
+    function openSite(url) {
+      const win = window.open("about:blank", "_blank");
+      if (!win) {
+        alert("Popup blocked!");
+        return;
+      }
+
+      win.document.write(`
+        <iframe 
+          src="${url}"
+          style="position:fixed; top:0; left:0; width:100%; height:100%; border:none;"
+        ></iframe>
+      `);
+      win.document.close();
+    }
+
+    // Filter sites by category with animation
+    function filterCategory(category) {
+      const buttons = document.querySelectorAll('.site-btn');
+      buttons.forEach((btn, index) => {
+        if (category === 'all' || btn.dataset.category === category) {
+          btn.style.display = 'block';
+          btn.style.opacity = 0;
+          btn.style.transform = 'translateY(20px)';
+          setTimeout(() => {
+            btn.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+            btn.style.opacity = 1;
+            btn.style.transform = 'translateY(0)';
+          }, index * 100);
+        } else {
+          btn.style.display = 'none';
+        }
+      });
+
+      // Update active category
+      const cats = document.querySelectorAll('.category-btn');
+      cats.forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    // Animate buttons on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const allButtons = document.querySelectorAll('.site-btn');
+      allButtons.forEach((btn, index) => {
+        btn.style.opacity = 0;
+        btn.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+          btn.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+          btn.style.opacity = 1;
+          btn.style.transform = 'translateY(0)';
+        }, index * 100);
+      });
+    });
+
+    // Set initial button highlight
+    setSearchMode('inline');
+  </script>
+
+</body>
+</html>
